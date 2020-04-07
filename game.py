@@ -30,7 +30,6 @@ CARD_HEIGHT = 160
 PADDING_TOP = 50
 PADDING_LEFT = 50
 
-
 class Card:
     x = 0
     y = 0
@@ -56,7 +55,6 @@ class Card:
 
 COLOR_INACTIVE = (151,175,171)
 COLOR_ACTIVE = (27,246,246)
-
 
 Cards = []
 
@@ -102,15 +100,106 @@ screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
 pygame.display.set_caption("MemoryGame")
 font = pygame.font.SysFont('Comic Sans MS', 30)
 
+TIME_TILL_TURN = 5
+
 done = False
+clock = pygame.time.Clock()
+
+gameStarted = False
+startTime = 0
+
+CARD_PUT_DOWN_TIME = 3
+
+card1up = None
+card2up = None
+cardsSolved = 0
+cardPutDownTime = CARD_PUT_DOWN_TIME
+lastCard = None
+puttingDown = False
+errors = 0
+endTime = 0
+
+def SaveHighScore(name):
+    print(name)
 
 while not done:
+    if TIME_TILL_TURN > 0:
+        clock.tick(1)
+        TIME_TILL_TURN -= 1
+    elif not gameStarted:
+        clock.tick(30)
+        gameStarted = True
+        for card in Cards:
+            card.faceUp = False
+        startTime = time.time()
+    else:
+        clock.tick(30)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
 
     screen.fill((255, 255, 255))
 
+    x, y = pygame.mouse.get_pos()
+    pressed, _, _ = pygame.mouse.get_pressed()
+    if gameStarted:
+        if cardsSolved == COLORS_TOTAL:
+            if endTime == 0:
+                endTime = time.time()
+            d = floor(endTime - startTime)
+            timeFromStart = font.render(str(d), False, (0, 0, 0))
+            screen.blit(timeFromStart, (SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2))
+            errorsSprite = font.render(str(errors), False, (230, 0, 0))
+            screen.blit(errorsSprite, (SCREEN_WIDTH / 2 + 50, SCREEN_HEIGHT / 2))
+        else:
+            d = floor((time.time()) - startTime)
+            timeFromStart = font.render(str(d), False, (0, 0, 0))
+            screen.blit(timeFromStart, (SCREEN_WIDTH / 2 - 50, 0))
+            errorsSprite = font.render(str(errors), False, (230, 0, 0))
+            screen.blit(errorsSprite, (SCREEN_WIDTH / 2 + 50, 0))
+
+            if time.time() > cardPutDownTime and puttingDown:
+                if card1up != None:
+                    card1up.faceUp = False
+                if card2up != None:
+                    card2up.faceUp = False
+                card1up = None
+                card2up = None
+                puttingDown = False
+
+            if pressed:
+                card = findPressedCard(x, y)
+                if card != None and card != lastCard:
+                    card.faceUp = True
+
+                    if card1up == None:
+                        card1up = card
+                    elif card2up == None:
+                        card2up = card
+                        if card1up.color == card2up.color:
+                            card1up.done = True
+                            card2up.done = True
+                            cardsSolved += 1
+                            card1up = None
+                            card2up = None
+                        else:
+                            cardPutDownTime = CARD_PUT_DOWN_TIME + time.time()
+                            puttingDown = True
+                            errors += 1
+                    else:
+                        puttingDown = False
+
+                        card1up.faceUp = False
+                        card2up.faceUp = False
+
+                        card1up = card
+                        card2up = None
+                lastCard = card
+    else:
+        timeTillStart = font.render(str(TIME_TILL_TURN), False, (0, 0, 0))
+        screen.blit(timeTillStart, (0, 0))
+    
     for card in Cards:
         card.Draw()
 
