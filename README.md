@@ -16,3 +16,11 @@ Napravljeno:
 - Rezultat
 
 ![Rezultat](3.png "Rezultat")
+
+- Postavljanje imena
+
+![Postavljanje imena](4.png "Postavljanje imena")
+
+- Ljestvica rezultata
+
+![Ljestvica rezultata](5.png "Ljestvica rezultata")
