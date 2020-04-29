@@ -4,6 +4,20 @@ from math import floor, modf, pi
 from random import randint
 import time
 
+
+f = open("scoreboard.txt", "a+")
+f.seek(0)
+scores = []
+for r in f.readlines():
+    nm, tm, ers, tot = r.split()
+    scores.append({
+        "name": nm,
+        "time": int(tm),
+        "errors": int(ers),
+        "total": int(tot)
+    })
+
+scores.sort(key=lambda x: x["total"], reverse=True)
 pygame.init()
 
 colors = [(0,   0, 255),
@@ -30,6 +44,7 @@ CARD_HEIGHT = 160
 PADDING_TOP = 50
 PADDING_LEFT = 50
 
+
 class Card:
     x = 0
     y = 0
@@ -53,8 +68,47 @@ class Card:
     def TestCollisionSelfPoint(self, x, y):
         return x > self.x and y > self.y and x < self.x + CARD_WIDTH and y < self.y + CARD_HEIGHT
 
-COLOR_INACTIVE = (151,175,171)
-COLOR_ACTIVE = (27,246,246)
+
+COLOR_INACTIVE = (151, 175, 171)
+COLOR_ACTIVE = (27, 246, 246)
+
+
+class InputBox:
+    def __init__(self, x, y, w, h, doneCallback, text=''):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.color = COLOR_INACTIVE
+        self.text = text
+        self.txt_surface = font.render(text, True, self.color)
+        self.active = False
+        self.doneCallback = doneCallback
+
+    def Handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                self.active = not self.active
+                self.text = ""
+            else:
+                self.active = False
+            self.color = COLOR_ACTIVE if self.active else COLOR_INACTIVE
+        if event.type == pygame.KEYDOWN:
+            if self.active:
+                if event.key == pygame.K_RETURN:
+                    self.doneCallback(self.text)
+                    self.text = ""
+                elif event.key == pygame.K_BACKSPACE:
+                    self.text = self.text[:-1]
+                else:
+                    self.text += event.unicode
+                self.txt_surface = font.render(self.text, True, self.color)
+
+    def Update(self):
+        width = max(200, self.txt_surface.get_width()+10)
+        self.rect.w = width
+
+    def Draw(self, screen):
+        screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
+        pygame.draw.rect(screen, self.color, self.rect, 2)
+
 
 Cards = []
 
@@ -104,9 +158,8 @@ TIME_TILL_TURN = 5
 
 done = False
 clock = pygame.time.Clock()
-
-gameStarted = False
 startTime = 0
+gameStarted = False
 
 CARD_PUT_DOWN_TIME = 3
 
@@ -119,8 +172,28 @@ puttingDown = False
 errors = 0
 endTime = 0
 
+writeHighscore = False
+
+
 def SaveHighScore(name):
-    print(name)
+    global writeHighscore
+    f.write("{0} {1} {2} {3} \n".format(name, floor(endTime - startTime),
+                                        errors, 1000 - floor(endTime - startTime) - errors * 10))
+    scores.append({
+        "name": name,
+        "time": floor(endTime - startTime),
+        "errors": errors,
+        "total":  1000 - floor(endTime - startTime) - errors * 10
+    })
+
+    scores.sort(key=lambda x: x["total"], reverse=True)
+
+    writeHighscore = True
+
+
+highscoreBox = InputBox(SCREEN_WIDTH / 2 - 100,
+                        400, 200, 32, SaveHighScore, "Username")
+
 
 while not done:
     if TIME_TILL_TURN > 0:
@@ -138,6 +211,8 @@ while not done:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
+        if gameStarted and cardsSolved == COLORS_TOTAL:
+            highscoreBox.Handle_event(event)
 
     screen.fill((255, 255, 255))
 
@@ -149,9 +224,30 @@ while not done:
                 endTime = time.time()
             d = floor(endTime - startTime)
             timeFromStart = font.render(str(d), False, (0, 0, 0))
-            screen.blit(timeFromStart, (SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2))
+            screen.blit(timeFromStart, (SCREEN_WIDTH /
+                                        2 - 50, 200))
             errorsSprite = font.render(str(errors), False, (230, 0, 0))
-            screen.blit(errorsSprite, (SCREEN_WIDTH / 2 + 50, SCREEN_HEIGHT / 2))
+            screen.blit(errorsSprite, (SCREEN_WIDTH /
+                                       2 + 50, 200))
+            screen.blit(font.render(str(errors), False, (230, 0, 0)), (SCREEN_WIDTH /
+                                       2 + 50, 200))
+
+            if not writeHighscore:
+                highscoreBox.Update()
+                highscoreBox.Draw(screen)
+
+            count = 0
+            for s in scores:
+                screen.blit(font.render(s["name"], False, (0, 0, 0)),
+                            (SCREEN_WIDTH / 2 - 250, 500 + count * 25))
+                screen.blit(font.render(str(s["time"]), False, (120, 120, 120)),
+                            (SCREEN_WIDTH / 2 - 50, 500 + count * 25))
+                screen.blit(font.render(str(s["errors"]), False, (255, 0, 0)),
+                            (SCREEN_WIDTH / 2 + 50, 500 + count * 25))
+                screen.blit(font.render(str(s["total"]), False, (0, 0, 0)),
+                            (SCREEN_WIDTH / 2 + 150, 500 + count * 25))
+                count += 1
+
         else:
             d = floor((time.time()) - startTime)
             timeFromStart = font.render(str(d), False, (0, 0, 0))
@@ -199,10 +295,12 @@ while not done:
     else:
         timeTillStart = font.render(str(TIME_TILL_TURN), False, (0, 0, 0))
         screen.blit(timeTillStart, (0, 0))
-    
+
     for card in Cards:
         card.Draw()
 
     pygame.display.flip()
 
 pygame.quit()
+
+f.close()
