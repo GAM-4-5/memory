@@ -33,13 +33,29 @@ colors = [(0,   0, 255),
           (50,   100,   95),
           (30,   120,   200),
           (220,   150,   25),
-          (255,   0,   0),
-          (255,   0,   0),
-          (255,   0,   0),
-          (255,   0,   0), ]
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          (randint(0,255),randint(0,255),randint(0,255)),
+          ]
 
-CARD_WIDTH = 100
-CARD_HEIGHT = 160
+CARD_WIDTH = 50
+CARD_HEIGHT = 80
 
 PADDING_TOP = 50
 PADDING_LEFT = 50
@@ -113,7 +129,7 @@ class InputBox:
 Cards = []
 
 CARDS_ROW = 4
-CARD_COLUMNS = 4
+CARD_COLUMNS = 7
 COLORS_TOTAL = floor(CARDS_ROW * CARD_COLUMNS / 2)
 
 colorsOut = {}
@@ -146,15 +162,15 @@ for y in range(0, CARDS_ROW):
                           3 / 2 * CARD_HEIGHT + PADDING_TOP, pullUniqueColor()))
         i += 0.5
 
-SCREEN_WIDTH = floor(CARD_COLUMNS * 3 / 2 * CARD_WIDTH + PADDING_LEFT)
-SCREEN_HEIGHT = floor(CARDS_ROW * 3 / 2 * CARD_HEIGHT + PADDING_TOP)
+SCREEN_WIDTH = floor(CARD_COLUMNS * 3 / 2 * CARD_WIDTH + PADDING_LEFT * 2)
+SCREEN_HEIGHT = floor(12 * CARD_HEIGHT + PADDING_TOP)
 
 screen = pygame.display.set_mode([SCREEN_WIDTH, SCREEN_HEIGHT])
 
 pygame.display.set_caption("MemoryGame")
 font = pygame.font.SysFont('Comic Sans MS', 30)
 
-TIME_TILL_TURN = 5
+TIME_TILL_TURN = 20
 
 done = False
 clock = pygame.time.Clock()
